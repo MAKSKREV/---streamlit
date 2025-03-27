@@ -12,7 +12,7 @@ c = conn.cursor()
 c.execute('''
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
+    name TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     balance INTEGER NOT NULL
 )
@@ -37,8 +37,11 @@ def hash_password(password):
 def register_user(name, password):
     initial_balance = 50  # Начальный баланс
     hashed_password = hash_password(password)
-    c.execute("INSERT INTO users (name, password, balance) VALUES (?, ?, ?)", (name, hashed_password, initial_balance))
-    conn.commit()
+    try:
+        c.execute("INSERT INTO users (name, password, balance) VALUES (?, ?, ?)", (name, hashed_password, initial_balance))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        st.error("Пользователь с таким именем уже существует.")
 
 # Функция для получения баланса пользователя
 def get_user_balance(name):
